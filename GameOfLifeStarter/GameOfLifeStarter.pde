@@ -1,31 +1,37 @@
-final int SPACING = 20; // each cell's width/height //<>// //<>//
-final float DENSITY = 0.1; // how likely each cell is to be alive at the start
-Tile[][] grid; // the 2D array to hold 0's and 1's
+final int SPACING = 5; // each cell's width/height //<>// //<>//
+final float DENSITY = 0.5; // how likely each cell is to be alive at the start
+Tile[][] currentGrid; // 2D array of Tiles
+ArrayList<Tile[][]> grids = new ArrayList<Tile[][]>();
+int index = 0;
+boolean playing = true;
 
 void setup() {
-  size(1000, 1000); // adjust accordingly, make sure it's a multiple of SPACING
+  size(1440, 850); // adjust accordingly, make sure it's a multiple of SPACING
   noStroke(); // don't draw the edges of each cell
   frameRate(10); // controls speed of regeneration
-  grid = new Tile[height / SPACING][width / SPACING];
-  setupGrid();
-
-  // populate initial grid
-  // your code here
+  currentGrid = new Tile[height / SPACING][width / SPACING];
+  setupGrid(); // populate the grid
 
 }
 
 void draw() {
-  showGrid();
-  grid = calcNextGrid();
+  if (playing) {
+    if (index < grids.size() - 1) {
+      index++;
+    } else {
+      currentGrid = calcNextGrid(grids.get(index));
+    }
+    showGrid(grids.get(index));
+  }
+  
 }
 
-Tile[][] calcNextGrid() {
+Tile[][] calcNextGrid(Tile[][] grid) {
   Tile[][] nextGrid = new Tile[grid.length][grid[0].length];
   for(int row = 0; row < grid.length; row++) {
     for(int col = 0; col < grid[row].length; col++) {
-      
       if (grid[row][col].getValue() == 1) {
-        switch (countNeighbors(row, col)){
+        switch (countNeighbors(row, col, grid)){
           case 2 :
             nextGrid[row][col] = grid[row][col];
             break;
@@ -35,35 +41,36 @@ Tile[][] calcNextGrid() {
           default :
             nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
             break;
-          
         }
-      } else if (countNeighbors(row, col) == 3) {
+      } else if (countNeighbors(row, col, grid) == 3) {
         nextGrid[row][col] = new Tile(1, SPACING * col, SPACING * row, SPACING);
       } else {
         nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
       }
     }
   }
+    grids.add(nextGrid);
+    index++;
    return nextGrid;
    
    
 }
 
-int countNeighbors(int y, int x) {
+int countNeighbors(int y, int x, Tile[][] grid) {
   int n = 0; // don't count yourself!
   for (int row = y - 1; row <= y + 1; row++) {
     for (int col = x - 1; col <= x + 1; col++) {
       if (row < 0) {
         row++;
       } else if (row >= grid.length) {
-        return n;
+        return n; // there will be no more neighbors to be counted so n can be returned
       }
       if (col < 0) {
         col++;
       } else if (col >= grid[row].length) {
         break;
       }
-      if ( row != y || col != x) {
+      if (row != y || col != x) {
         n += grid[row][col].getValue() == 1? 1 : 0;
       }
     }
@@ -73,22 +80,47 @@ int countNeighbors(int y, int x) {
 }
 
 void setupGrid() {
-  for (int row = 0; row < grid.length; row++) {
-    for(int col = 0; col < grid[row].length; col++) {
+  for (int row = 0; row < currentGrid.length; row++) {
+    for(int col = 0; col < currentGrid[row].length; col++) {
+      // chance based on Density to be alive at start
       if(Math.random() < DENSITY) {
-        grid[row][col] = new Tile(1, SPACING * col, SPACING * row, SPACING);
+        currentGrid[row][col] = new Tile(1, SPACING * col, SPACING * row, SPACING);
       } else {
-        grid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
+        currentGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
       }
+    }
+  }
+  grids.add(currentGrid);
+}
+
+void showGrid(Tile[][] grid) {
+  for (Tile[] row : grid) {
+    for (Tile tile : row) {
+      if (index == grids.size() - 1) {
+        tile.update();
+      } else {
+        tile.show();
+      }
+      
     }
   }
 }
 
-void showGrid() {
-  for (Tile[] row : grid) {
-    for (Tile tile : row) {
-      tile.update();
+void keyPressed() {
+  if (key == ' ') {
+    playing = !playing; // pause game
+  } else if (keyCode == RIGHT) {
+    //step through one round at a time
+    if (index < grids.size() - 1) {
+      index++;
+    } else {
+      currentGrid = calcNextGrid(grids.get(index));
     }
+    showGrid(grids.get(index));
+  } else if (keyCode == LEFT) {
+    index--;
+    showGrid(grids.get(index));
   }
+  
 }
       

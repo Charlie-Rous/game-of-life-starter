@@ -2,7 +2,7 @@ public class Tile{
   private int val;
   private float rValue = 255;
   private float bValue = 0;
-  private float colorConst = 5;
+  private float colorConst = 20;
   private float xPos;
   private float yPos;
   private float size;
@@ -15,13 +15,13 @@ public class Tile{
   }
   
   public void update() {
+    rValue -= colorConst;
+    bValue += colorConst;
     show();
   }
   
   private void show() {
     if (val == 1) {
-      rValue -= colorConst;
-      bValue += colorConst;
       fill(rValue, 0, bValue);
     } else {
       fill(0,0,0);
