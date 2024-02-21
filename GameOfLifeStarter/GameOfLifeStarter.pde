@@ -4,6 +4,7 @@ Tile[][] currentGrid; // 2D array of Tiles
 ArrayList<Tile[][]> grids = new ArrayList<Tile[][]>();
 int index = 0;
 boolean playing = true;
+Tile[][] lastGrid;
 
 void setup() {
   size(1440, 850); // adjust accordingly, make sure it's a multiple of SPACING
@@ -16,8 +17,8 @@ void setup() {
 
 void draw() {
   if (playing) {
-    if (index < grids.size() - 1) {
-      index++;
+    if (index < grids.size() - 1) { // if you are stepping through old grids
+      index++; // step to next grid
     } else {
       currentGrid = calcNextGrid(grids.get(index));
     }
@@ -30,26 +31,21 @@ Tile[][] calcNextGrid(Tile[][] grid) {
   Tile[][] nextGrid = new Tile[grid.length][grid[0].length];
   for(int row = 0; row < grid.length; row++) {
     for(int col = 0; col < grid[row].length; col++) {
-      if (grid[row][col].getValue() == 1) {
-        switch (countNeighbors(row, col, grid)){
-          case 2 :
-            nextGrid[row][col] = grid[row][col];
-            break;
-          case 3 :
-            nextGrid[row][col] = grid[row][col];
-            break;
-          default :
-            nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
-            break;
+      if (grid[row][col].getValue() == 1) {// if square is alive
+        int neighbors = countNeighbors(row, col, grid);
+        if (neighbors == 2 || neighbors == 3 ){
+          nextGrid[row][col] = grid[row][col];
+        } else {
+          nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
         }
-      } else if (countNeighbors(row, col, grid) == 3) {
+      } else if (countNeighbors(row, col, grid) == 3) { // if empty square has 3 neighbors
         nextGrid[row][col] = new Tile(1, SPACING * col, SPACING * row, SPACING);
       } else {
         nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
       }
     }
   }
-    grids.add(nextGrid);
+    grids.add(nextGrid);// save that grid in the arry of grids
     index++;
    return nextGrid;
    
@@ -111,15 +107,17 @@ void keyPressed() {
     playing = !playing; // pause game
   } else if (keyCode == RIGHT) {
     //step through one round at a time
-    if (index < grids.size() - 1) {
+    if ((index < grids.size() - 1 ) && grids.get(index + 1) != lastGrid) {
       index++;
     } else {
       currentGrid = calcNextGrid(grids.get(index));
     }
     showGrid(grids.get(index));
   } else if (keyCode == LEFT) {
+    //step backwards
     index--;
     showGrid(grids.get(index));
+    lastGrid = grids.get(grids.size() - 1);
   }
   
 }

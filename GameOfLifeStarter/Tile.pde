@@ -10,7 +10,7 @@ public class Tile{
   public Tile(int val, float xPos, float yPos, float size) {
     this.val = val;
     this.xPos = xPos;
-    this.yPos = yPos;'
+    this.yPos = yPos;
     this.size = size;
   }
   
