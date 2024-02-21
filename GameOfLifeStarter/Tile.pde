@@ -20,6 +20,12 @@ public class Tile{
     show();
   }
   
+  public void backwards() {
+    rValue += colorConst;
+    bValue -= colorConst;
+    show();
+  }
+  
   private void show() {
     if (val == 1) {
       fill(rValue, 0, bValue);

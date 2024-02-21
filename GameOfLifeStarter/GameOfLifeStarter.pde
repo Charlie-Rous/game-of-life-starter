@@ -5,11 +5,13 @@ ArrayList<Tile[][]> grids = new ArrayList<Tile[][]>();
 int index = 0;
 boolean playing = true;
 Tile[][] lastGrid;
+int maxGrid = 50;
+boolean reversing = false;
 
 void setup() {
   size(1440, 850); // adjust accordingly, make sure it's a multiple of SPACING
   noStroke(); // don't draw the edges of each cell
-  frameRate(10); // controls speed of regeneration
+  frameRate(30); // controls speed of regeneration
   currentGrid = new Tile[height / SPACING][width / SPACING];
   setupGrid(); // populate the grid
 
@@ -31,22 +33,27 @@ Tile[][] calcNextGrid(Tile[][] grid) {
   Tile[][] nextGrid = new Tile[grid.length][grid[0].length];
   for(int row = 0; row < grid.length; row++) {
     for(int col = 0; col < grid[row].length; col++) {
-      if (grid[row][col].getValue() == 1) {// if square is alive
-        int neighbors = countNeighbors(row, col, grid);
+      int neighbors = countNeighbors(row, col, grid);
+      if (grid[row][col].getValue() == 1) {// if square is alive 
         if (neighbors == 2 || neighbors == 3 ){
-          nextGrid[row][col] = grid[row][col];
+          nextGrid[row][col] = grid[row][col]; // keep same tile aliver
         } else {
           nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
         }
-      } else if (countNeighbors(row, col, grid) == 3) { // if empty square has 3 neighbors
-        nextGrid[row][col] = new Tile(1, SPACING * col, SPACING * row, SPACING);
+      } else if (neighbors == 3) { // if empty square has 3 neighbors
+        nextGrid[row][col] = new Tile(1, SPACING * col, SPACING * row, SPACING);// spawn new alive tile
       } else {
         nextGrid[row][col] = new Tile(0, SPACING * col, SPACING * row, SPACING);
       }
     }
   }
     grids.add(nextGrid);// save that grid in the arry of grids
-    index++;
+    if (grids.size() >= maxGrid){
+      grids.remove(0);
+    } else {
+      index++;
+    }
+    
    return nextGrid;
    
    
@@ -92,10 +99,10 @@ void setupGrid() {
 void showGrid(Tile[][] grid) {
   for (Tile[] row : grid) {
     for (Tile tile : row) {
-      if (index == grids.size() - 1) {
+      if(reversing) {
+        tile.backwards();
+      }else {
         tile.update();
-      } else {
-        tile.show();
       }
       
     }
@@ -105,16 +112,19 @@ void showGrid(Tile[][] grid) {
 void keyPressed() {
   if (key == ' ') {
     playing = !playing; // pause game
+    reversing = false;
   } else if (keyCode == RIGHT) {
     //step through one round at a time
+    reversing = false;
     if ((index < grids.size() - 1 ) && grids.get(index + 1) != lastGrid) {
       index++;
     } else {
       currentGrid = calcNextGrid(grids.get(index));
     }
     showGrid(grids.get(index));
-  } else if (keyCode == LEFT) {
+  } else if (keyCode == LEFT && index > 0) {
     //step backwards
+    reversing = true;
     index--;
     showGrid(grids.get(index));
     lastGrid = grids.get(grids.size() - 1);
